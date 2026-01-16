@@ -1,21 +1,31 @@
-name: Upstream Sync
+name: Auto Sync and Trigger Build
 
 on:
   schedule:
-    - cron:  '0 0 * * *'
-  workflow_dispatch: 
-
+    - cron: '0 0 * * *' 
+  workflow_dispatch:      
 jobs:
-  sync_latest_from_upstream:
+  sync:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout target repo
+      - name: Checkout
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.MY_PAT }} # ここで登録したトークンを使います
           fetch-depth: 0
 
-      - name: Sync upstream changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: main
+      - name: Sync from Upstream
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git remote add upstream https://github.com/96flashbacks/backstage.git
+          git fetch upstream
+          
+          
+          git checkout main
+          git merge upstream/main
+          
+          
+          git push origin main
+
